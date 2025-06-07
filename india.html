@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journey Through India: State Wealth Explorer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ff9933 0%, #ffffff 50%, #138808 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #34495e;
+            font-weight: 300;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .start-journey {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(247, 147, 30, 0.3);
+        }
+        
+        .start-journey:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(247, 147, 30, 0.4);
+        }
+        
+        .journey-path {
+            position: relative;
+            margin: 40px 0;
+            height: 100px;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .car {
+            position: absolute;
+            top: 50%;
+            left: -80px;
+            transform: translateY(-50%);
+            font-size: 3rem;
+            transition: left 2s ease-in-out;
+            z-index: 10;
+        }
+        
+        .road-lines {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: repeating-linear-gradient(
+                90deg,
+                white 0px,
+                white 30px,
+                transparent 30px,
+                transparent 60px
+            );
+            animation: roadMove 2s linear infinite;
+        }
+        
+        @keyframes roadMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 60px 0; }
+        }
+        
+        .states-grid {
+            display: grid;
+            gap: 25px;
+            margin-top: 40px;
+        }
+        
+        .state-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s ease;
+            opacity: 0;
+            transform: translateY(50px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .state-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .state-card:hover::before {
+            left: 100%;
+        }
+        
+        .state-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .state-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        .state-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .state-rank {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-right: 20px;
+            box-shadow: 0 5px 15px rgba(247, 147, 30, 0.3);
+        }
+        
+        .state-name {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2c3e50;
+            flex-grow: 1;
+        }
+        
+        .state-flag {
+            font-size: 2rem;
+            margin-left: 15px;
+        }
+        
+        .state-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .info-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .state-description {
+            color: #555;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #f7931e);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 1s ease-in-out;
+        }
+        
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .floating-element {
+            position: absolute;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.1;
+            font-size: 2rem;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .wealth-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .wealth-high {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        .wealth-medium {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+        }
+        
+        .wealth-low {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .state-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .journey-path {
+                height: 80px;
+            }
+            
+            .car {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements" id="floatingElements"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🇮🇳 Journey Through India</h1>
+            <p>Explore the wealth distribution across Indian states - from richest to poorest</p>
+        </div>
+        
+        <div class="controls">
+            <button class="start-journey" onclick="startJourney()">🚗 Start Your Journey</button>
+        </div>
+        
+        <div class="journey-path" id="journeyPath">
+            <div class="road-lines"></div>
+            <div class="car" id="car">🚗</div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="states-grid" id="statesGrid">
+            <!-- States will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const states = [
+            {
+                rank: 1,
+                name: "Maharashtra",
+                population: "12.42 crores",
+                gdp: "₹36.73 lakh crores",
+                perCapita: "₹2,96,000",
+                capital: "Mumbai",
+                flag: "🏙️",
+                description: "The financial capital of India, home to Bollywood and major industrial hubs. Known for its progressive economy and cultural diversity.",
+                wealthLevel: "high"
+            },
+            {
+                rank: 2,
+                name: "Tamil Nadu",
+                population: "7.67 crores",
+                gdp: "₹24.85 lakh crores",
+                perCapita: "₹3,24,000",
+                capital: "Chennai",
+                flag: "🏛️",
+                description: "Known as the Detroit of India for its automobile industry. Rich in culture, temples, and technological advancement.",
+                wealthLevel: "high"
+            },
+            {
+                rank: 3,
+                name: "Gujarat",
+                population: "6.04 crores",
+                gdp: "₹22.76 lakh crores",
+                perCapita: "₹3,77,000",
+                capital: "Gandhinagar",
+                flag: "🦁",
+                description: "The business hub of India with the highest per capita income. Known for entrepreneurship and industrial development.",
+                wealthLevel: "high"
+            },
+            {
+                rank: 4,
+                name: "Karnataka",
+                population: "6.11 crores",
+                gdp: "₹22.44 lakh crores",
+                perCapita: "₹3,67,000",
+                capital: "Bangalore",
+                flag: "💻",
+                description: "India's Silicon Valley, home to major IT companies and startups. Perfect blend of tradition and technology.",
+                wealthLevel: "high"
+            },
+            {
+                rank: 5,
+                name: "Uttar Pradesh",
+                population: "23.81 crores",
+                gdp: "₹21.73 lakh crores",
+                perCapita: "₹91,000",
+                capital: "Lucknow",
+                flag: "🏰",
+                description: "India's most populous state with rich historical heritage. Home to the Taj Mahal and many cultural treasures.",
+                wealthLevel: "medium"
+            },
+            {
+                rank: 6,
+                name: "West Bengal",
+                population: "9.13 crores",
+                gdp: "₹17.21 lakh crores",
+                perCapita: "₹1,89,000",
+                capital: "Kolkata",
+                flag: "🎭",
+                description: "Cultural capital of India, known for literature, art, and intellectual pursuits. Rich in traditions and festivals.",
+                wealthLevel: "medium"
+            },
+            {
+                rank: 7,
+                name: "Rajasthan",
+                population: "7.72 crores",
+                gdp: "₹14.59 lakh crores",
+                perCapita: "₹1,89,000",
+                capital: "Jaipur",
+                flag: "🏜️",
+                description: "The land of kings and palaces. Famous for its desert landscape, colorful culture, and royal heritage.",
+                wealthLevel: "medium"
+            },
+            {
+                rank: 8,
+                name: "Andhra Pradesh",
+                population: "5.32 crores",
+                gdp: "₹13.81 lakh crores",
+                perCapita: "₹2,60,000",
+                capital: "Amaravati",
+                flag: "🌶️",
+                description: "Known for spicy cuisine, rich culture, and emerging IT sector. Famous for its classical dance and music traditions.",
+                wealthLevel: "medium"
+            },
+            {
+                rank: 9,
+                name: "Madhya Pradesh",
+                population: "8.26 crores",
+                gdp: "₹11.96 lakh crores",
+                perCapita: "₹1,45,000",
+                capital: "Bhopal",
+                flag: "🐅",
+                description: "Heart of India with rich wildlife and natural beauty. Home to several national parks and historical monuments.",
+                wealthLevel: "low"
+            },
+            {
+                rank: 10,
+                name: "Bihar",
+                population: "12.40 crores",
+                gdp: "₹8.45 lakh crores",
+                perCapita: "₹68,000",
+                capital: "Patna",
+                flag: "🎓",
+                description: "Ancient seat of learning with rich Buddhist and Hindu heritage. Known for its contribution to education and spirituality.",
+                wealthLevel: "low"
+            }
+        ];
+
+        let currentStateIndex = 0;
+        let journeyStarted = false;
+
+        function createFloatingElements() {
+            const container = document.getElementById('floatingElements');
+            const symbols = ['🕉️', '🐘', '🌸', '🪔', '🎭', '🏛️', '🦚', '🌺'];
+            
+            for (let i = 0; i < 20; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                element.style.left = Math.random() * 100 + '%';
+                element.style.top = Math.random() * 100 + '%';
+                element.style.animationDelay = Math.random() * 6 + 's';
+                container.appendChild(element);
+            }
+        }
+
+        function createStateCard(state, index) {
+            return `
+                <div class="state-card" style="animation-delay: ${index * 0.2}s">
+                    <div class="wealth-indicator wealth-${state.wealthLevel}">
+                        ${state.wealthLevel.toUpperCase()} GDP
+                    </div>
+                    <div class="state-header">
+                        <div class="state-rank">${state.rank}</div>
+                        <div class="state-name">${state.name}</div>
+                        <div class="state-flag">${state.flag}</div>
+                    </div>
+                    <div class="state-info">
+                        <div class="info-item">
+                            <div class="info-label">Population</div>
+                            <div class="info-value">${state.population}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">GDP</div>
+                            <div class="info-value">${state.gdp}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Per Capita Income</div>
+                            <div class="info-value">${state.perCapita}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Capital</div>
+                            <div class="info-value">${state.capital}</div>
+                        </div>
+                    </div>
+                    <div class="state-description">${state.description}</div>
+                </div>
+            `;
+        }
+
+        function populateStates() {
+            const grid = document.getElementById('statesGrid');
+            grid.innerHTML = states.map((state, index) => createStateCard(state, index)).join('');
+        }
+
+        function startJourney() {
+            if (journeyStarted) return;
+            
+            journeyStarted = true;
+            const car = document.getElementById('car');
+            const progressFill = document.getElementById('progressFill');
+            const cards = document.querySelectorAll('.state-card');
+            
+            // Move car across the screen
+            car.style.left = 'calc(100% + 80px)';
+            progressFill.style.width = '100%';
+            
+            // Show cards one by one
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('show');
+                }, (index + 1) * 400);
+            });
+            
+            // Reset journey after completion
+            setTimeout(() => {
+                journeyStarted = false;
+                car.style.left = '-80px';
+                progressFill.style.width = '0%';
+            }, 8000);
+        }
+
+        // Initialize the page
+        window.addEventListener('load', () => {
+            createFloatingElements();
+            populateStates();
+            
+            // Add some interactive effects
+            document.addEventListener('mousemove', (e) => {
+                const floatingElements = document.querySelectorAll('.floating-element');
+                floatingElements.forEach((element, index) => {
+                    const speed = (index % 3 + 1) * 0.01;
+                    const x = (e.clientX * speed) % window.innerWidth;
+                    const y = (e.clientY * speed) % window.innerHeight;
+                    element.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px) rotate(${x * 0.1}deg)`;
+                });
+            });
+        });
+
+        // Auto-start journey after 3 seconds
+        setTimeout(() => {
+            if (!journeyStarted) {
+                startJourney();
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

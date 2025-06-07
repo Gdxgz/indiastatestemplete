@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive India - Journey Across States</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff9933, #ffffff, #138808);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.3), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .title {
+            font-size: 3em;
+            color: #138808;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            animation: bounce 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-10px); }
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #ff9933;
+            font-weight: bold;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 20px auto;
+            gap: 20px;
+            padding: 0 20px;
+        }
+
+        .map-section {
+            flex: 2;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .state-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .state-card {
+            background: linear-gradient(45deg, #ff9933, #138808);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .state-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ff9933, #ffffff, #138808);
+            border-radius: 12px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .state-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .state-card:hover::before {
+            opacity: 1;
+        }
+
+        .state-card.active {
+            background: linear-gradient(45deg, #138808, #ff9933);
+            transform: scale(1.1);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1.1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .travel-path {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .car {
+            position: absolute;
+            width: 40px;
+            height: 20px;
+            background: #ff4444;
+            border-radius: 5px;
+            transition: all 2s ease-in-out;
+            z-index: 15;
+        }
+
+        .car::before {
+            content: '🚗';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+        }
+
+        .state-info {
+            background: linear-gradient(135deg, #ff9933, #138808);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .state-info h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+        }
+
+        .state-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff9933, #138808);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .journey-info {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .title {
+                font-size: 2em;
+            }
+            .state-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">🇮🇳 Incredible India</h1>
+        <p class="subtitle">Journey Through the Land of Diversity</p>
+    </div>
+
+    <div class="container">
+        <div class="map-section">
+            <div class="controls">
+                <button class="btn" onclick="startRandomJourney()">🚗 Random Journey</button>
+                <button class="btn" onclick="resetJourney()">🔄 Reset</button>
+            </div>
+            
+            <div class="state-grid" id="stateGrid">
+                <!-- States will be populated by JavaScript -->
+            </div>
+            
+            <div class="travel-path">
+                <div class="car" id="car"></div>
+            </div>
+            
+            <div class="journey-info" id="journeyInfo">
+                <p>🗺️ Click on any state to explore or start a random journey!</p>
+            </div>
+        </div>
+
+        <div class="info-panel" id="infoPanel">
+            <div class="state-info">
+                <h3>🇮🇳 Welcome to India</h3>
+                <p>Explore the incredible diversity of India's 28 states and 8 union territories. Each region has its unique culture, language, cuisine, and heritage.</p>
+                <br>
+                <p><strong>Select a state to begin your journey!</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const states = [
+            {
+                name: "Andhra Pradesh",
+                capital: "Amaravati",
+                population: "49.4 million",
+                area: "160,205 km²",
+                language: "Telugu",
+                famous: "Tirupati Temple, Hyderabadi Biryani",
+                image: "https://images.unsplash.com/photo-1605649487212-47bdab064df7?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Arunachal Pradesh",
+                capital: "Itanagar",
+                population: "1.4 million",
+                area: "83,743 km²",
+                language: "Hindi, English",
+                famous: "Tawang Monastery, Ziro Valley",
+                image: "https://images.unsplash.com/photo-1506095078091-9e7c6d25c68a?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Assam",
+                capital: "Dispur",
+                population: "31.2 million",
+                area: "78,438 km²",
+                language: "Assamese",
+                famous: "Tea Gardens, Kaziranga National Park",
+                image: "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Bihar",
+                capital: "Patna",
+                population: "104.1 million",
+                area: "94,163 km²",
+                language: "Hindi",
+                famous: "Bodh Gaya, Nalanda University",
+                image: "https://images.unsplash.com/photo-1582650625119-3a31f8fa2699?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Chhattisgarh",
+                capital: "Raipur",
+                population: "25.5 million",
+                area: "135,192 km²",
+                language: "Hindi",
+                famous: "Chitrakote Falls, Tribal Culture",
+                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Goa",
+                capital: "Panaji",
+                population: "1.5 million",
+                area: "3,702 km²",
+                language: "Konkani",
+                famous: "Beaches, Portuguese Architecture",
+                image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Gujarat",
+                capital: "Gandhinagar",
+                population: "60.4 million",
+                area: "196,244 km²",
+                language: "Gujarati",
+                famous: "Statue of Unity, Rann of Kutch",
+                image: "https://images.unsplash.com/photo-1599162500398-723fef4c8bff?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Haryana",
+                capital: "Chandigarh",
+                population: "25.4 million",
+                area: "44,212 km²",
+                language: "Hindi",
+                famous: "Kurukshetra, Modern Agriculture",
+                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Himachal Pradesh",
+                capital: "Shimla",
+                population: "6.9 million",
+                area: "55,673 km²",
+                language: "Hindi",
+                famous: "Hill Stations, Adventure Sports",
+                image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Jharkhand",
+                capital: "Ranchi",
+                population: "33.0 million",
+                area: "79,716 km²",
+                language: "Hindi",
+                famous: "Mineral Resources, Tribal Heritage",
+                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Karnataka",
+                capital: "Bengaluru",
+                population: "61.1 million",
+                area: "191,791 km²",
+                language: "Kannada",
+                famous: "IT Hub, Mysore Palace",
+                image: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Kerala",
+                capital: "Thiruvananthapuram",
+                population: "33.4 million",
+                area: "38,852 km²",
+                language: "Malayalam",
+                famous: "Backwaters, Ayurveda",
+                image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Madhya Pradesh",
+                capital: "Bhopal",
+                population: "72.6 million",
+                area: "308,245 km²",
+                language: "Hindi",
+                famous: "Khajuraho, Tiger Reserves",
+                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Maharashtra",
+                capital: "Mumbai",
+                population: "112.4 million",
+                area: "307,713 km²",
+                language: "Marathi",
+                famous: "Bollywood, Gateway of India",
+                image: "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Manipur",
+                capital: "Imphal",
+                population: "2.9 million",
+                area: "22,327 km²",
+                language: "Manipuri",
+                famous: "Classical Dance, Loktak Lake",
+                image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Meghalaya",
+                capital: "Shillong",
+                population: "3.0 million",
+                area: "22,429 km²",
+                language: "English",
+                famous: "Living Root Bridges, Cherrapunji",
+                image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Mizoram",
+                capital: "Aizawl",
+                population: "1.1 million",
+                area: "21,081 km²",
+                language: "Mizo",
+                famous: "Blue Mountain, Bamboo Dance",
+                image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Nagaland",
+                capital: "Kohima",
+                population: "2.0 million",
+                area: "16,579 km²",
+                language: "English",
+                famous: "Hornbill Festival, Tribal Culture",
+                image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Odisha",
+                capital: "Bhubaneswar",
+                population: "42.0 million",
+                area: "155,707 km²",
+                language: "Odia",
+                famous: "Jagannath Temple, Classical Dance",
+                image: "https://images.unsplash.com/photo-1609137144813-7d9921338f24?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Punjab",
+                capital: "Chandigarh",
+                population: "27.7 million",
+                area: "50,362 km²",
+                language: "Punjabi",
+                famous: "Golden Temple, Agricultural Hub",
+                image: "https://images.unsplash.com/photo-1605649487212-47bdab064df7?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Rajasthan",
+                capital: "Jaipur",
+                population: "68.5 million",
+                area: "342,239 km²",
+                language: "Hindi",
+                famous: "Desert, Palaces & Forts",
+                image: "https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Sikkim",
+                capital: "Gangtok",
+                population: "0.6 million",
+                area: "7,096 km²",
+                language: "Nepali",
+                famous: "Kanchenjunga, Monasteries",
+                image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Tamil Nadu",
+                capital: "Chennai",
+                population: "72.1 million",
+                area: "130,060 km²",
+                language: "Tamil",
+                famous: "Temples, Classical Music",
+                image: "https://images.unsplash.com/photo-1582650625119-3a31f8fa2699?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Telangana",
+                capital: "Hyderabad",
+                population: "35.0 million",
+                area: "112,077 km²",
+                language: "Telugu",
+                famous: "IT Hub, Charminar",
+                image: "https://images.unsplash.com/photo-1605649487212-47bdab064df7?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Tripura",
+                capital: "Agartala",
+                population: "3.7 million",
+                area: "10,486 km²",
+                language: "Bengali",
+                famous: "Ujjayanta Palace, Tribal Heritage",
+                image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Uttar Pradesh",
+                capital: "Lucknow",
+                population: "199.8 million",
+                area: "240,928 km²",
+                language: "Hindi",
+                famous: "Taj Mahal, Varanasi",
+                image: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Uttarakhand",
+                capital: "Dehradun",
+                population: "10.1 million",
+                area: "53,483 km²",
+                language: "Hindi",
+                famous: "Char Dham, Adventure Tourism",
+                image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop"
+            },
+            {
+                name: "West Bengal",
+                capital: "Kolkata",
+                population: "91.3 million",
+                area: "88,752 km²",
+                language: "Bengali",
+                famous: "Cultural Hub, Sundarbans",
+                image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=200&fit=crop"
+            },
+            {
+                name: "Delhi",
+                capital: "New Delhi",
+                population: "32.9 million",
+                area: "1,484 km²",
+                language: "Hindi",
+                famous: "Red Fort, India Gate",
+                image: "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=300&h=200&fit=crop"
+            }
+        ];
+
+        let currentState = null;
+        let journeyActive = false;
+
+        function initializeStates() {
+            const grid = document.getElementById('stateGrid');
+            grid.innerHTML = '';
+            
+            states.forEach((state, index) => {
+                const card = document.createElement('div');
+                card.className = 'state-card';
+                card.innerHTML = `
+                    <div style="font-size: 0.9em;">${state.name}</div>
+                    <div style="font-size: 0.7em; opacity: 0.8;">${state.capital}</div>
+                `;
+                card.onclick = () => selectState(state, index);
+                grid.appendChild(card);
+            });
+        }
+
+        function selectState(state, index) {
+            // Remove active class from all cards
+            document.querySelectorAll('.state-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // Add active class to selected card
+            document.querySelectorAll('.state-card')[index].classList.add('active');
+            
+            currentState = state;
+            updateInfoPanel(state);
+            
+            if (!journeyActive) {
+                moveCarToState(index);
+            }
+        }
+
+        function updateInfoPanel(state) {
+            const panel = document.getElementById('infoPanel');
+            panel.innerHTML = `
+                <div class="state-info">
+                    <h3>📍 ${state.name}</h3>
+                    <img src="${state.image}" alt="${state.name}" class="state-image" />
+                    <div class="info-item">
+                        <span><strong>🏛️ Capital:</strong></span>
+                        <span>${state.capital}</span>
+                    </div>
+                    <div class="info-item">
+                        <span><strong>👥 Population:</strong></span>
+                        <span>${state.population}</span>
+                    </div>
+                    <div class="info-item">
+                        <span><strong>📐 Area:</strong></span>
+                        <span>${state.area}</span>
+                    </div>
+                    <div class="info-item">
+                        <span><strong>🗣️ Language:</strong></span>
+                        <span>${state.language}</span>
+                    </div>
+                    <div class="info-item">
+                        <span><strong>⭐ Famous For:</strong></span>
+                        <span>${state.famous}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function moveCarToState(index) {
+            const car = document.getElementById('car');
+            const cards = document.querySelectorAll('.state-card');
+            const targetCard = cards[index];
+            
+            if (targetCard) {
+                const rect = targetCard.getBoundingClientRect();
+                const containerRect = document.querySelector('.map-section').getBoundingClientRect();
+                
+                const x = rect.left - containerRect.left + rect.width/2 - 20;
+                const y = rect.top - containerRect.top + rect.height/2 - 10;
+                
+                car.style.left = x + 'px';
+                car.style.top = y + 'px';
+                car.style.opacity = '1';
+            }
+        }
+
+        function startRandomJourney() {
+            if (journeyActive) return;
+            
+            journeyActive = true;
+            const journeyInfo = document.getElementById('journeyInfo');
+            journeyInfo.innerHTML = '<p>🚗 Starting random journey across India...</p>';
+            
+            let visitedStates = [];
+            let currentIndex = 0;
+            
+            function visitNextState() {
+                if (visitedStates.length >= 5) {
+                    journeyActive = false;
+                    journeyInfo.innerHTML = '<p>🏁 Journey complete! Explored 5 amazing states of India!</p>';
+                    return;
+                }
+                
+                let randomIndex;
+                do {
+                    randomIndex = Math.floor(Math.random() * states.length);
+                } while (visitedStates.includes(randomIndex));
+                
+                visitedStates.push(randomIndex);
+                selectState(states[randomIndex], randomIndex);
+                
+                journeyInfo.innerHTML = `<p>🗺️ Journey Progress: ${visitedStates.length}/5 states visited</p>`;
+                
+                setTimeout(visitNextState, 3000);
+            }
+            
+            setTimeout(visitNextState, 1000);
+        }
+
+        function resetJourney() {
+            journeyActive = false;
+            const car = document.getElementById('car');
+            car.style.opacity = '0';
+            
+            document.querySelectorAll('.state-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            const panel = document.getElementById('infoPanel');
+            panel.innerHTML = `
+                <div class="state-info">
+                    <h3>🇮🇳 Welcome to India</h3>
+                    <p>Explore the incredible diversity of India's 28 states and 8 union territories. Each region has its unique culture, language, cuisine, and heritage.</p>
+                    <br>
+                    <p><strong>Select a state to begin your journey!</strong></p>
+                </div>
+            `;
+            
+            document.getElementById('journeyInfo').innerHTML = '<p>🗺️ Click on any state to explore or start a random journey!</p>';
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeStates();
+        });
+    </script>
+</body>
+</html>
